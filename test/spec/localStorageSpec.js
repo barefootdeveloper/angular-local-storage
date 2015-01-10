@@ -75,13 +75,18 @@ describe('localStorageService', function() {
     };
   }
 
-  function expectCookieConfig(exp, path) {
+  function expectCookieConfig(exp, path, secure) {
     return function($document, localStorageService) {
       localStorageService.set('foo','bar'); //Should trigger first time
       // Just compare the expiry date, not the time, because of daylight savings
       var expiryStringPartial = exp.substr(0, exp.indexOf(new Date().getFullYear()));
       expect($document.cookie.indexOf('expires=' + expiryStringPartial)).not.toEqual(-1);
       expect($document.cookie.indexOf('path=' + path)).not.toEqual(-1);
+      if(secure) {
+        expect($document.cookie.indexOf('secure')).not.toEqual(-1);
+      } else {
+        expect(($document.cookie).indexOf('secure')).toEqual(-1);
+      }
     };
   }
 
@@ -110,9 +115,9 @@ describe('localStorageService', function() {
     };
   }
 
-  function setStorageCookie(exp, path) {
+  function setStorageCookie(exp, path, secure) {
     return function(localStorageServiceProvider) {
-      localStorageServiceProvider.setStorageCookie(exp, path);
+      localStorageServiceProvider.setStorageCookie(exp, path, secure);
     };
   }
 
@@ -217,7 +222,7 @@ describe('localStorageService', function() {
       addItem('key', '777'),
       expectAdding('ls.key', angular.toJson('777')),
       expectMatching('key', '777')
-    )
+    );
   });
 
   it('should be able to get items', inject(
@@ -357,7 +362,7 @@ describe('localStorageService', function() {
       }
       expect(localStorageService.length()).toEqual(10);
       expect($window.localStorage.length).toEqual(20);
-  }));
+    }));
 
   it('should be able to clear all owned keys from storage',inject(function($window, localStorageService) {
     for(var i = 0; i < 10; i++) {
@@ -463,9 +468,14 @@ describe('localStorageService', function() {
       inject(expectDomain('.example.org'));
     });
 
-    it('should be able to config expiry and path', function() {
+    it('should not have a secure cookie', function() {
       module(setStorageCookie(60, '/path'));
-      inject(expectCookieConfig(new Date().addDays(60), '/path'));
+      inject(expectCookieConfig(new Date().addDays(60), '/path', false));
+    });
+
+    it('should be able to config expiry and path and secure', function() {
+      module(setStorageCookie(60, '/path', true));
+      inject(expectCookieConfig(new Date().addDays(60), '/path', true));
     });
 
     it('should be able to set and get cookie', inject(function(localStorageService) {
@@ -499,7 +509,7 @@ describe('localStorageService', function() {
 
     it('should be able to clear all owned keys from cookie', inject(function(localStorageService, $document) {
       localStorageService.set('ownKey1', 1);
-      $document.cookie = "username=John Doe";
+      $document.cookie = 'username=John Doe';
       localStorageService.clearAll();
       expect(localStorageService.get('ownKey1')).toEqual(null);
       expect($document.cookie).not.toEqual('');

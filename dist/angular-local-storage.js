@@ -1,6 +1,6 @@
 /**
  * An Angular module that gives you access to the browsers local storage
- * @version v0.1.5 - 2014-11-04
+ * @version v0.1.5 - 2015-01-09
  * @link https://github.com/grevory/angular-local-storage
  * @author grevory <greg@gregpike.ca>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -30,7 +30,7 @@ var angularLocalStorage = angular.module('LocalStorageModule', []);
 angularLocalStorage.provider('localStorageService', function() {
 
   // You should set a prefix to avoid overwriting any local storage variables from the rest of your app
-  // e.g. localStorageServiceProvider.setPrefix('youAppName');
+  // e.g. localStorageServiceProvider.setPrefix('yourAppName');
   // With provider you can use config as this:
   // myApp.config(function (localStorageServiceProvider) {
   //    localStorageServiceProvider.prefix = 'yourAppName';
@@ -43,9 +43,11 @@ angularLocalStorage.provider('localStorageService', function() {
   // Cookie options (usually in case of fallback)
   // expiry = Number of days before cookies expire // 0 = Does not expire
   // path = The web path the cookie represents
+  // secure = Sets the secure flag // true = Secure
   this.cookie = {
     expiry: 30,
-    path: '/'
+    path: '/',
+    secure: false
   };
 
   // Send signals for each of the following actions?
@@ -67,10 +69,11 @@ angularLocalStorage.provider('localStorageService', function() {
    };
 
   // Setter for cookie config
-  this.setStorageCookie = function(exp, path) {
+  this.setStorageCookie = function(exp, path, secure) {
     this.cookie = {
       expiry: exp,
-      path: path
+      path: path,
+      secure: secure
     };
     return this;
   };
@@ -321,7 +324,8 @@ angularLocalStorage.provider('localStorageService', function() {
       try {
         var expiry = '',
             expiryDate = new Date(),
-            cookieDomain = '';
+            cookieDomain = '',
+            cookieSecure = '';
 
         if (value === null) {
           // Mark that the cookie has expired one day ago
@@ -337,7 +341,10 @@ angularLocalStorage.provider('localStorageService', function() {
           if(cookie.domain){
             cookieDomain = "; domain=" + cookie.domain;
           }
-          $document.cookie = deriveQualifiedKey(key) + "=" + encodeURIComponent(value) + expiry + cookiePath + cookieDomain;
+          if(cookie.secure){
+          	cookieSecure = "; secure";
+          }
+          $document.cookie = deriveQualifiedKey(key) + "=" + encodeURIComponent(value) + expiry + cookiePath + cookieDomain + cookieSecure;
         }
       } catch (e) {
         $rootScope.$broadcast('LocalStorageModule.notification.error',e.message);

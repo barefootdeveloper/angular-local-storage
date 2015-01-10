@@ -97,11 +97,12 @@ myApp.config(function (localStorageServiceProvider) {
 ###setStorageCookie
 Set cookie options (usually in case of fallback)<br/>
 **expiry:** number of days before cookies expire (0 = does not expire). **default:** `30`<br/>
-**path:** the web path the cookie represents. **default:** `'/'`
+**path:** the web path the cookie represents. **default:** `'/'`<br/>
+**secure:** limit the cookie to ssl. **default:** `false`
 ```js
 myApp.config(function (localStorageServiceProvider) {
   localStorageServiceProvider
-    .setStorageCookie(45, '<path>');
+    .setStorageCookie(45, '<path>', true);
 });
 ```
 ###setStorageCookieDomain
